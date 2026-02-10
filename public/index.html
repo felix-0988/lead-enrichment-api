@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Enrichment API - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    
+    body {
+      background: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .navbar {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+    
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      color: #64748b;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .api-key-section {
+      background: #1e293b;
+      color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    
+    .code-block {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+    
+    .alert {
+      border-radius: 8px;
+    }
+    
+    .table {
+      font-size: 0.875rem;
+    }
+    
+    .endpoint-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    .endpoint-post {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .endpoint-get {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    #loading {
+      display: none;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark">
+    <div class="container">
+      <span class="navbar-brand mb-0 h1">
+        🔍 Lead Enrichment API
+      </span>
+      <div class="d-flex gap-3">
+        <a href="#docs" class="btn btn-outline-light btn-sm">API Docs</a>
+        <a href="#playground" class="btn btn-light btn-sm">Try It</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <!-- Hero -->
+    <div class="row mb-5">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-3">Enrich Leads with Company Data</h1>
+        <p class="lead text-muted">
+          Powerful API to enrich email addresses and domains with detailed company information. 
+          Powered by Hunter.io and Clearbit.
+        </p>
+      </div>
+    </div>
+
+    <!-- API Key Generation -->
+    <div class="row mb-5" id="get-started">
+      <div class="col-lg-6">
+        <div class="api-key-section">
+          <h4 class="mb-3">🚀 Get Started</h4>
+          <p class="text-muted mb-3">Generate an API key to start using the API</p>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id="keyName" placeholder="Enter key name (e.g., 'My App')">
+            <button class="btn btn-primary" onclick="generateKey()">Generate Key</button>
+          </div>
+          <div id="generatedKey" class="d-none">
+            <div class="alert alert-success">
+              <strong>Your API Key:</strong>
+              <div class="code-block mt-2" id="apiKeyDisplay"></div>
+              <small class="text-warning">Save this key now - it won't be shown again!</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">📊 Live Stats</h5>
+            <div id="globalStats">
+              <div class="text-center py-4 text-muted">
+                Loading stats...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="row g-4 mb-5" id="dashboard">
+      <div class="col-md-3">
+        <div class="card stat-card text-center">
+          <div class="stat-value" id="totalRequests">-</div>
+          <div class="stat-label">Total Requests</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card text-center">
+          <div class="stat-value" id="emailRequests">-</div>
+          <div class="stat-label">Email Enrichments</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card text-center">
+          <div class="stat-value" id="domainRequests">-</div>
+          <div class="stat-label">Domain Enrichments</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card text-center">
+          <div class="stat-value" id="successRate">-</div>
+          <div class="stat-label">Success Rate %</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Playground -->
+    <div class="row mb-5" id="playground">
+      <div class="col-12">
+        <h3 class="mb-4">🎮 API Playground</h3>
+      </div>
+      
+      <div class="col-lg-6 mb-4">
+        <div class="card">
+          <div class="card-header bg-white">
+            <span class="endpoint-badge endpoint-post">POST</span>
+            <strong class="ms-2">/enrich/email</strong>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Your API Key</label>
+              <input type="text" class="form-control" id="playgroundApiKey" placeholder="Enter your API key">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="testEmail" placeholder="john@example.com" value="john@stripe.com">
+            </div>
+            <button class="btn btn-primary w-100" onclick="testEmailEndpoint()">
+              Send Request
+            </button>
+            <div id="emailResult" class="mt-3 d-none">
+              <div class="code-block" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-6 mb-4">
+        <div class="card">
+          <div class="card-header bg-white">
+            <span class="endpoint-badge endpoint-post">POST</span>
+            <strong class="ms-2">/enrich/domain</strong>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Your API Key</label>
+              <input type="text" class="form-control" id="playgroundApiKey2" placeholder="Enter your API key">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Domain</label>
+              <input type="text" class="form-control" id="testDomain" placeholder="example.com" value="stripe.com">
+            </div>
+            <button class="btn btn-primary w-100" onclick="testDomainEndpoint()">
+              Send Request
+            </button>
+            <div id="domainResult" class="mt-3 d-none">
+              <div class="code-block" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Documentation -->
+    <div class="row" id="docs">
+      <div class="col-12">
+        <h3 class="mb-4">📚 API Documentation</h3>
+        
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Authentication</h5>
+          </div>
+          <div class="card-body">
+            <p>All API requests require an API key passed in the <code>X-API-Key</code> header:</p>
+            <div class="code-block">
+curl -X POST https://your-api.com/api/enrich/email \\
+  -H "X-API-Key: your_api_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"email": "john@example.com"}'
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Endpoints</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="endpoint-badge endpoint-post">POST</span></td>
+                    <td><code>/api/enrich/email</code></td>
+                    <td>Enrich an email with company data</td>
+                  </tr>
+                  <tr>
+                    <td><span class="endpoint-badge endpoint-post">POST</span></td>
+                    <td><code>/api/enrich/domain</code></td>
+                    <td>Enrich a domain with company data</td>
+                  </tr>
+                  <tr>
+                    <td><span class="endpoint-badge endpoint-get">GET</span></td>
+                    <td><code>/api/dashboard/stats</code></td>
+                    <td>Get your usage statistics</td>
+                  </tr>
+                  <tr>
+                    <td><span class="endpoint-badge endpoint-get">GET</span></td>
+                    <td><code>/health</code></td>
+                    <td>Health check</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Rate Limiting</h5>
+          </div>
+          <div class="card-body">
+            <p>API requests are limited to <strong>100 requests per 15 minutes</strong> per API key.</p>
+            <p>Rate limit headers are included in all responses:</p>
+            <ul>
+              <li><code>X-RateLimit-Limit</code> - Maximum requests allowed</li>
+              <li><code>X-RateLimit-Remaining</code> - Requests remaining in window</li>
+              <li><code>X-RateLimit-Reset</code> - Time when limit resets</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Example Response</h5>
+          </div>
+          <div class="card-body">
+            <div class="code-block">
+{
+  "success": true,
+  "data": {
+    "email": "john@stripe.com",
+    "domain": "stripe.com",
+    "company": {
+      "name": "Stripe",
+      "description": "Payment infrastructure for the internet",
+      "industry": "Financial Services",
+      "employees": 8000,
+      "location": {
+        "city": "San Francisco",
+        "country": "United States"
+      }
+    },
+    "source": "clearbit",
+    "cached": false
+  }
+}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-white border-top py-4 mt-5">
+    <div class="container text-center text-muted">
+      <p class="mb-0">Lead Enrichment API &copy; 2025</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_BASE = window.location.origin + '/api';
+
+    async function generateKey() {
+      const name = document.getElementById('keyName').value;
+      if (!name) {
+        alert('Please enter a key name');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/generate-key`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('apiKeyDisplay').textContent = data.apiKey;
+          document.getElementById('generatedKey').classList.remove('d-none');
+          document.getElementById('playgroundApiKey').value = data.apiKey;
+          document.getElementById('playgroundApiKey2').value = data.apiKey;
+        } else {
+          alert('Failed to generate key: ' + data.message);
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    async function testEmailEndpoint() {
+      const apiKey = document.getElementById('playgroundApiKey').value;
+      const email = document.getElementById('testEmail').value;
+      
+      if (!apiKey || !email) {
+        alert('Please enter API key and email');
+        return;
+      }
+
+      const resultDiv = document.getElementById('emailResult');
+      resultDiv.classList.remove('d-none');
+      resultDiv.querySelector('.code-block').textContent = 'Loading...';
+
+      try {
+        const response = await fetch(`${API_BASE}/enrich/email`, {
+          method: 'POST',
+          headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+        resultDiv.querySelector('.code-block').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultDiv.querySelector('.code-block').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function testDomainEndpoint() {
+      const apiKey = document.getElementById('playgroundApiKey2').value;
+      const domain = document.getElementById('testDomain').value;
+      
+      if (!apiKey || !domain) {
+        alert('Please enter API key and domain');
+        return;
+      }
+
+      const resultDiv = document.getElementById('domainResult');
+      resultDiv.classList.remove('d-none');
+      resultDiv.querySelector('.code-block').textContent = 'Loading...';
+
+      try {
+        const response = await fetch(`${API_BASE}/enrich/domain`, {
+          method: 'POST',
+          headers: {
+            'X-API-Key': apiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ domain })
+        });
+
+        const data = await response.json();
+        resultDiv.querySelector('.code-block').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultDiv.querySelector('.code-block').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function loadGlobalStats() {
+      try {
+        const response = await fetch(`${API_BASE}/dashboard/global-stats`);
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('globalStats').innerHTML = `
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.total_requests || 0}</div>
+                <div class="stat-label" style="font-size: 0.7rem;">Total</div>
+              </div>
+              <div class="col-4">
+                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.email_requests || 0}</div>
+                <div class="stat-label" style="font-size: 0.7rem;">Emails</div>
+              </div>
+              <div class="col-4">
+                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.domain_requests || 0}</div>
+                <div class="stat-label" style="font-size: 0.7rem;">Domains</div>
+              </div>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    // Load stats on page load
+    loadGlobalStats();
+  </script>
+</body>
+</html>

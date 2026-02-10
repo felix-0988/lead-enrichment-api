@@ -1,0 +1,17 @@
+{
+  "name": "lead-enrichment-api",
+  "version": "1.0.0",
+  "description": "Lead Enrichment API - Enrich emails and domains with company data",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest"
+  },
+  "keywords": ["lead", "enrichment", "api", "hunter", "clearbit"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
