@@ -12,7 +12,7 @@ const createRateLimiter = () => {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
+    keyGenerator: (req, res) => {
       return req.apiKeyId || req.ip;
     },
     skip: (req) => {
