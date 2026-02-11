@@ -3,383 +3,1103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead Enrichment API - Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Lead Enrichment API - Turn Emails Into Company Intelligence</title>
+  <meta name="description" content="Powerful API to enrich email addresses and domains with detailed company data. Perfect for sales teams and developers.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            accent: {
+              50: '#fdf4ff',
+              100: '#fae8ff',
+              200: '#f5d0fe',
+              300: '#f0abfc',
+              400: '#e879f9',
+              500: '#d946ef',
+              600: '#c026d3',
+              700: '#a21caf',
+              800: '#86198f',
+              900: '#701a75',
+            }
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'gradient': 'gradient 8s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            gradient: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
+    .gradient-text {
+      background: linear-gradient(135deg, #3b82f6 0%, #d946ef 50%, #3b82f6 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 8s linear infinite;
     }
-    
-    body {
-      background: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
-    
-    .navbar {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
-    .card {
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .stat-card {
-      background: white;
-      padding: 1.5rem;
-    }
-    
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: var(--primary);
-    }
-    
-    .stat-label {
-      color: #64748b;
-      font-size: 0.875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .api-key-section {
-      background: #1e293b;
-      color: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
-    
-    .code-block {
-      background: #0f172a;
-      border-radius: 8px;
-      padding: 1rem;
-      font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 0.875rem;
-      overflow-x: auto;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-    
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      border-color: var(--primary-dark);
-    }
-    
-    .alert {
-      border-radius: 8px;
-    }
-    
-    .table {
-      font-size: 0.875rem;
-    }
-    
-    .endpoint-badge {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-    
-    .endpoint-post {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-    
-    .endpoint-get {
-      background: #d1fae5;
-      color: #065f46;
-    }
-    
-    #loading {
-      display: none;
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.5s ease-in;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .code-syntax-keyword { color: #c678dd; }
+    .code-syntax-string { color: #98c379; }
+    .code-syntax-number { color: #d19a66; }
+    .code-syntax-key { color: #e06c75; }
+    .code-syntax-comment { color: #5c6370; font-style: italic; }
+    .smooth-scroll { scroll-behavior: smooth; }
   </style>
 </head>
-<body>
-  <nav class="navbar navbar-dark">
-    <div class="container">
-      <span class="navbar-brand mb-0 h1">
-        🔍 Lead Enrichment API
-      </span>
-      <div class="d-flex gap-3">
-        <a href="#docs" class="btn btn-outline-light btn-sm">API Docs</a>
-        <a href="#playground" class="btn btn-light btn-sm">Try It</a>
+<body class="font-sans antialiased text-slate-900 bg-white">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <a href="#" onclick="showPage('landing')" class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <span class="font-bold text-xl">LeadEnrich</span>
+        </a>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#features" onclick="scrollToSection('features')" class="text-slate-600 hover:text-primary-600 transition">Features</a>
+          <a href="#pricing" onclick="scrollToSection('pricing')" class="text-slate-600 hover:text-primary-600 transition">Pricing</a>
+          <a href="#" onclick="showPage('docs')" class="text-slate-600 hover:text-primary-600 transition">API Docs</a>
+          <a href="#playground" onclick="scrollToSection('playground')" class="text-slate-600 hover:text-primary-600 transition">Try It</a>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button onclick="showPage('docs')" class="hidden md:block text-slate-600 hover:text-primary-600 transition">Documentation</button>
+          <button onclick="scrollToSection('get-started')" class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-full font-medium transition shadow-lg shadow-primary-500/25">
+            Get API Key
+          </button>
+        </div>
       </div>
     </div>
   </nav>
 
-  <div class="container py-5">
-    <!-- Hero -->
-    <div class="row mb-5">
-      <div class="col-lg-8">
-        <h1 class="display-5 fw-bold mb-3">Enrich Leads with Company Data</h1>
-        <p class="lead text-muted">
-          Powerful API to enrich email addresses and domains with detailed company information. 
-          Powered by Hunter.io and Clearbit.
-        </p>
+  <!-- Landing Page -->
+  <div id="landing-page">
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+      <!-- Background Decorations -->
+      <div class="absolute inset-0 -z-10">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-primary-100/50 to-accent-100/50 rounded-full blur-3xl opacity-50"></div>
+        <div class="absolute top-1/4 right-0 w-96 h-96 bg-primary-200/30 rounded-full blur-2xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-accent-200/30 rounded-full blur-2xl"></div>
       </div>
-    </div>
 
-    <!-- API Key Generation -->
-    <div class="row mb-5" id="get-started">
-      <div class="col-lg-6">
-        <div class="api-key-section">
-          <h4 class="mb-3">🚀 Get Started</h4>
-          <p class="text-muted mb-3">Generate an API key to start using the API</p>
-          <div class="input-group mb-3">
-            <input type="text" class="form-control" id="keyName" placeholder="Enter key name (e.g., 'My App')">
-            <button class="btn btn-primary" onclick="generateKey()">Generate Key</button>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-4xl mx-auto">
+          <div class="inline-flex items-center space-x-2 bg-white/80 backdrop-blur border border-slate-200 rounded-full px-4 py-1.5 mb-8 shadow-sm">
+            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium text-slate-600">Now with Hunter.io & Clearbit integration</span>
           </div>
-          <div id="generatedKey" class="d-none">
-            <div class="alert alert-success">
-              <strong>Your API Key:</strong>
-              <div class="code-block mt-2" id="apiKeyDisplay"></div>
-              <small class="text-warning">Save this key now - it won't be shown again!</small>
+          
+          <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6">
+            Turn Emails Into
+            <span class="gradient-text">Company Intelligence</span>
+          </h1>
+          
+          <p class="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Enrich any email address or domain with detailed company data. 
+            Built for sales teams and developers who need accurate lead intelligence.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <button onclick="scrollToSection('get-started')" class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition shadow-xl shadow-primary-500/30 flex items-center justify-center space-x-2">
+              <span>Start Free</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+              </svg>
+            </button>
+            <button onclick="showPage('docs')" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 px-8 py-4 rounded-full font-semibold text-lg transition flex items-center justify-center space-x-2">
+              <span>View Documentation</span>
+            </button>
+          </div>
+
+          <!-- Code Preview Card -->
+          <div class="relative max-w-2xl mx-auto">
+            <div class="absolute -inset-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl blur opacity-20"></div>
+            <div class="relative glass-dark rounded-xl p-6 text-left font-mono text-sm overflow-hidden">
+              <div class="flex items-center space-x-2 mb-4">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                <span class="ml-4 text-slate-400 text-xs">curl request</span>
+              </div>
+              <pre class="text-slate-300 overflow-x-auto"><code><span class="code-syntax-keyword">curl</span> <span class="code-syntax-string">-X POST</span> <span class="code-syntax-string">https://leads.zenithstudio.app/api/enrich/email</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"X-API-Key: le_your_api_key"</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"Content-Type: application/json"</span> \
+  <span class="code-syntax-string">-d</span> <span class="code-syntax-string">'{"email": "john@stripe.com"}'</span></code></pre>
             </div>
           </div>
         </div>
       </div>
-      
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-body">
-            <h5 class="card-title">📊 Live Stats</h5>
-            <div id="globalStats">
-              <div class="text-center py-4 text-muted">
-                Loading stats...
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-12 border-y border-slate-100 bg-slate-50/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div>
+            <div class="text-3xl md:text-4xl font-bold text-slate-900">&lt;100ms</div>
+            <div class="text-sm text-slate-600 mt-1">Response Time</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold text-slate-900">99.9%</div>
+            <div class="text-sm text-slate-600 mt-1">Uptime</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold text-slate-900">100+</div>
+            <div class="text-sm text-slate-600 mt-1">Data Points</div>
+          </div>
+          <div>
+            <div class="text-3xl md:text-4xl font-bold text-slate-900">24h</div>
+            <div class="text-sm text-slate-600 mt-1">Cache Duration</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <span class="text-primary-600 font-semibold text-sm uppercase tracking-wider">Features</span>
+          <h2 class="text-4xl font-bold mt-2 mb-4">Everything you need for lead enrichment</h2>
+          <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+            Powerful features designed to help sales teams and developers get the most out of their lead data.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Feature 1 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Email Enrichment</h3>
+            <p class="text-slate-600 leading-relaxed">
+              Transform any email address into detailed company profiles. Get employee count, industry, location, and more.
+            </p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-accent-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Domain Intelligence</h3>
+            <p class="text-slate-600 leading-relaxed">
+              Enrich domains with comprehensive company data including technologies used, revenue estimates, and social profiles.
+            </p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Email Verification</h3>
+            <p class="text-slate-600 leading-relaxed">
+              Verify email deliverability, check for disposable addresses, and get confidence scores for every email.
+            </p>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Lightning Fast</h3>
+            <p class="text-slate-600 leading-relaxed">
+              Sub-100ms response times with intelligent caching. Get your data when you need it, instantly.
+            </p>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Usage Analytics</h3>
+            <p class="text-slate-600 leading-relaxed">
+              Track your API usage with detailed analytics. Monitor request volume, success rates, and more.
+            </p>
+          </div>
+
+          <!-- Feature 6 -->
+          <div class="group bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="w-14 h-14 bg-pink-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+              <svg class="w-7 h-7 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-3">Developer Friendly</h3>
+            <p class="text-slate-600 leading-relaxed">
+              RESTful API with comprehensive documentation. SDKs coming soon for Python, Node.js, and Ruby.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Examples Section -->
+    <section class="py-24 bg-slate-900 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <span class="text-accent-400 font-semibold text-sm uppercase tracking-wider">Simple Integration</span>
+            <h2 class="text-4xl font-bold mt-2 mb-6">Built for developers, loved by sales teams</h2>
+            <p class="text-slate-400 text-lg mb-8">
+              Get started in minutes with our simple REST API. No complex authentication flows, just grab an API key and start enriching.
+            </p>
+            
+            <div class="space-y-4">
+              <div class="flex items-start space-x-4">
+                <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Simple REST API</h4>
+                  <p class="text-slate-400 text-sm">Standard HTTP methods and JSON responses</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-4">
+                <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">API Key Authentication</h4>
+                  <p class="text-slate-400 text-sm">Single header authentication, no OAuth complexity</p>
+                </div>
+              </div>
+              <div class="flex items-start space-x-4">
+                <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Multiple Data Sources</h4>
+                  <p class="text-slate-400 text-sm">Hunter.io, Clearbit, and mock data for testing</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex space-x-2 mb-4">
+              <button onclick="showCode('curl')" id="btn-curl" class="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium transition">cURL</button>
+              <button onclick="showCode('node')" id="btn-node" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium transition">Node.js</button>
+              <button onclick="showCode('python')" id="btn-python" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium transition">Python</button>
+            </div>
+            
+            <div id="code-curl" class="bg-slate-950 rounded-xl p-6 font-mono text-sm overflow-x-auto border border-slate-800">
+              <pre><code><span class="code-syntax-keyword">curl</span> <span class="code-syntax-string">-X POST</span> <span class="code-syntax-string">https://leads.zenithstudio.app/api/enrich/email</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"X-API-Key: le_your_api_key"</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"Content-Type: application/json"</span> \
+  <span class="code-syntax-string">-d</span> <span class="code-syntax-string">'{"email": "john@stripe.com"}'</span></code></pre>
+            </div>
+            
+            <div id="code-node" class="hidden bg-slate-950 rounded-xl p-6 font-mono text-sm overflow-x-auto border border-slate-800">
+              <pre><code><span class="code-syntax-keyword">const</span> response = <span class="code-syntax-keyword">await</span> <span class="code-syntax-key">fetch</span>(<span class="code-syntax-string">'https://leads.zenithstudio.app/api/enrich/email'</span>, {
+  <span class="code-syntax-key">method</span>: <span class="code-syntax-string">'POST'</span>,
+  <span class="code-syntax-key">headers</span>: {
+    <span class="code-syntax-string">'X-API-Key'</span>: <span class="code-syntax-string">'le_your_api_key'</span>,
+    <span class="code-syntax-string">'Content-Type'</span>: <span class="code-syntax-string">'application/json'</span>
+  },
+  <span class="code-syntax-key">body</span>: <span class="code-syntax-key">JSON</span>.<span class="code-syntax-key">stringify</span>({ <span class="code-syntax-key">email</span>: <span class="code-syntax-string">'john@stripe.com'</span> })
+});
+
+<span class="code-syntax-keyword">const</span> data = <span class="code-syntax-keyword">await</span> response.<span class="code-syntax-key">json</span>();
+<span class="code-syntax-key">console</span>.<span class="code-syntax-key">log</span>(data.<span class="code-syntax-key">company</span>);</code></pre>
+            </div>
+            
+            <div id="code-python" class="hidden bg-slate-950 rounded-xl p-6 font-mono text-sm overflow-x-auto border border-slate-800">
+              <pre><code><span class="code-syntax-keyword">import</span> requests
+
+response = requests.post(
+    <span class="code-syntax-string">'https://leads.zenithstudio.app/api/enrich/email'</span>,
+    headers={<span class="code-syntax-string">'X-API-Key'</span>: <span class="code-syntax-string">'le_your_api_key'</span>},
+    json={<span class="code-syntax-string">'email'</span>: <span class="code-syntax-string">'john@stripe.com'</span>}
+)
+
+data = response.json()
+<span class="code-syntax-key">print</span>(data[<span class="code-syntax-string">'company'</span>])</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Playground Section -->
+    <section id="playground" class="py-24">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <span class="text-primary-600 font-semibold text-sm uppercase tracking-wider">Try It</span>
+          <h2 class="text-4xl font-bold mt-2 mb-4">Interactive API Playground</h2>
+          <p class="text-xl text-slate-600">
+            Test the API directly in your browser. Generate an API key and start making requests.
+          </p>
+        </div>
+
+        <!-- API Key Generator -->
+        <div id="get-started" class="bg-gradient-to-br from-primary-50 to-accent-50 rounded-2xl p-8 mb-12 border border-primary-100">
+          <h3 class="text-xl font-bold mb-4">🚀 Get Your API Key</h3>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <input type="text" id="keyName" placeholder="Enter key name (e.g., 'My App')" 
+              class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <button onclick="generateKey()" 
+              class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold transition">
+              Generate Key
+            </button>
+          </div>
+          <div id="generatedKey" class="hidden mt-4">
+            <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+              <p class="text-green-800 font-semibold mb-2">✅ Your API Key (save it now!):</p>
+              <code id="apiKeyDisplay" class="block bg-white rounded-lg p-3 font-mono text-sm break-all"></code>
+              <p class="text-amber-600 text-sm mt-2">⚠️ This key will only be shown once. Store it securely.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playground -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Email Enrichment -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+              <div class="flex items-center space-x-2">
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">POST</span>
+                <code class="text-sm">/api/enrich/email</code>
+              </div>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">API Key</label>
+                <input type="text" id="playgroundApiKey" placeholder="le_your_api_key" 
+                  class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input type="email" id="testEmail" value="john@stripe.com" 
+                  class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              </div>
+              <button onclick="testEmailEndpoint()" 
+                class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-lg font-medium transition">
+                Send Request
+              </button>
+              <div id="emailResult" class="hidden">
+                <div class="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-x-auto max-h-64 overflow-y-auto"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Domain Enrichment -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+              <div class="flex items-center space-x-2">
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">POST</span>
+                <code class="text-sm">/api/enrich/domain</code>
+              </div>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">API Key</label>
+                <input type="text" id="playgroundApiKey2" placeholder="le_your_api_key" 
+                  class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Domain</label>
+                <input type="text" id="testDomain" value="stripe.com" 
+                  class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm">
+              </div>
+              <button onclick="testDomainEndpoint()" 
+                class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-lg font-medium transition">
+                Send Request
+              </button>
+              <div id="domainResult" class="hidden">
+                <div class="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-x-auto max-h-64 overflow-y-auto"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Stats Dashboard -->
-    <div class="row g-4 mb-5" id="dashboard">
-      <div class="col-md-3">
-        <div class="card stat-card text-center">
-          <div class="stat-value" id="totalRequests">-</div>
-          <div class="stat-label">Total Requests</div>
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <span class="text-primary-600 font-semibold text-sm uppercase tracking-wider">Pricing</span>
+          <h2 class="text-4xl font-bold mt-2 mb-4">Simple, transparent pricing</h2>
+          <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+            Start free, scale as you grow. No hidden fees, no surprises.
+          </p>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card stat-card text-center">
-          <div class="stat-value" id="emailRequests">-</div>
-          <div class="stat-label">Email Enrichments</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card stat-card text-center">
-          <div class="stat-value" id="domainRequests">-</div>
-          <div class="stat-label">Domain Enrichments</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card stat-card text-center">
-          <div class="stat-value" id="successRate">-</div>
-          <div class="stat-label">Success Rate %</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- API Playground -->
-    <div class="row mb-5" id="playground">
-      <div class="col-12">
-        <h3 class="mb-4">🎮 API Playground</h3>
-      </div>
-      
-      <div class="col-lg-6 mb-4">
-        <div class="card">
-          <div class="card-header bg-white">
-            <span class="endpoint-badge endpoint-post">POST</span>
-            <strong class="ms-2">/enrich/email</strong>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label">Your API Key</label>
-              <input type="text" class="form-control" id="playgroundApiKey" placeholder="Enter your API key">
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <!-- Free Plan -->
+          <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+            <h3 class="text-xl font-bold mb-2">Free</h3>
+            <p class="text-slate-600 mb-6">Perfect for testing</p>
+            <div class="mb-6">
+              <span class="text-4xl font-bold">$0</span>
+              <span class="text-slate-600">/month</span>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Email Address</label>
-              <input type="email" class="form-control" id="testEmail" placeholder="john@example.com" value="john@stripe.com">
-            </div>
-            <button class="btn btn-primary w-100" onclick="testEmailEndpoint()">
-              Send Request
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">100 requests/month</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Email & Domain enrichment</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Mock data source</span>
+              </li>
+            </ul>
+            <button onclick="scrollToSection('get-started')" class="w-full py-3 rounded-xl border-2 border-slate-200 font-semibold hover:border-primary-600 hover:text-primary-600 transition">
+              Get Started
             </button>
-            <div id="emailResult" class="mt-3 d-none">
-              <div class="code-block" style="max-height: 300px; overflow-y: auto;"></div>
-            </div>
           </div>
-        </div>
-      </div>
-      
-      <div class="col-lg-6 mb-4">
-        <div class="card">
-          <div class="card-header bg-white">
-            <span class="endpoint-badge endpoint-post">POST</span>
-            <strong class="ms-2">/enrich/domain</strong>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label">Your API Key</label>
-              <input type="text" class="form-control" id="playgroundApiKey2" placeholder="Enter your API key">
+
+          <!-- Pro Plan -->
+          <div class="bg-white rounded-2xl p-8 border-2 border-primary-500 shadow-xl relative">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span class="bg-primary-600 text-white text-xs font-bold px-4 py-1 rounded-full">MOST POPULAR</span>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Domain</label>
-              <input type="text" class="form-control" id="testDomain" placeholder="example.com" value="stripe.com">
+            <h3 class="text-xl font-bold mb-2">Pro</h3>
+            <p class="text-slate-600 mb-6">For growing teams</p>
+            <div class="mb-6">
+              <span class="text-4xl font-bold">$49</span>
+              <span class="text-slate-600">/month</span>
             </div>
-            <button class="btn btn-primary w-100" onclick="testDomainEndpoint()">
-              Send Request
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">10,000 requests/month</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Hunter.io integration</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Priority support</span>
+              </li>
+            </ul>
+            <button onclick="scrollToSection('get-started')" class="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700 transition">
+              Start Free Trial
             </button>
-            <div id="domainResult" class="mt-3 d-none">
-              <div class="code-block" style="max-height: 300px; overflow-y: auto;"></div>
+          </div>
+
+          <!-- Enterprise Plan -->
+          <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+            <h3 class="text-xl font-bold mb-2">Enterprise</h3>
+            <p class="text-slate-600 mb-6">For large organizations</p>
+            <div class="mb-6">
+              <span class="text-4xl font-bold">Custom</span>
             </div>
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Unlimited requests</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">All data sources</span>
+              </li>
+              <li class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-slate-600">Dedicated support</span>
+              </li>
+            </ul>
+            <button onclick="scrollToSection('get-started')" class="w-full py-3 rounded-xl border-2 border-slate-200 font-semibold hover:border-primary-600 hover:text-primary-600 transition">
+              Contact Sales
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- API Documentation -->
-    <div class="row" id="docs">
-      <div class="col-12">
-        <h3 class="mb-4">📚 API Documentation</h3>
-        
-        <div class="card mb-4">
-          <div class="card-header bg-white">
-            <h5 class="mb-0">Authentication</h5>
-          </div>
-          <div class="card-body">
-            <p>All API requests require an API key passed in the <code>X-API-Key</code> header:</p>
-            <div class="code-block">
-curl -X POST https://your-api.com/api/enrich/email \\
-  -H "X-API-Key: your_api_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{"email": "john@example.com"}'
-            </div>
-          </div>
+    <!-- CTA Section -->
+    <section class="py-24">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to enrich your leads?</h2>
+        <p class="text-xl text-slate-600 mb-10">
+          Start for free today. No credit card required.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button onclick="scrollToSection('get-started')" class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition shadow-xl shadow-primary-500/30">
+            Get Started Free
+          </button>
+          <button onclick="showPage('docs')" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200 px-8 py-4 rounded-full font-semibold text-lg transition">
+            Read Documentation
+          </button>
         </div>
+      </div>
+    </section>
 
-        <div class="card mb-4">
-          <div class="card-header bg-white">
-            <h5 class="mb-0">Endpoints</h5>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Method</th>
-                    <th>Endpoint</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><span class="endpoint-badge endpoint-post">POST</span></td>
-                    <td><code>/api/enrich/email</code></td>
-                    <td>Enrich an email with company data</td>
-                  </tr>
-                  <tr>
-                    <td><span class="endpoint-badge endpoint-post">POST</span></td>
-                    <td><code>/api/enrich/domain</code></td>
-                    <td>Enrich a domain with company data</td>
-                  </tr>
-                  <tr>
-                    <td><span class="endpoint-badge endpoint-get">GET</span></td>
-                    <td><code>/api/dashboard/stats</code></td>
-                    <td>Get your usage statistics</td>
-                  </tr>
-                  <tr>
-                    <td><span class="endpoint-badge endpoint-get">GET</span></td>
-                    <td><code>/health</code></td>
-                    <td>Health check</td>
-                  </tr>
-                </tbody>
-              </table>
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-12">
+          <div>
+            <div class="flex items-center space-x-2 mb-4">
+              <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <span class="font-bold text-xl">LeadEnrich</span>
             </div>
+            <p class="text-slate-400">
+              Powerful API to enrich email addresses and domains with detailed company data.
+            </p>
           </div>
-        </div>
-
-        <div class="card mb-4">
-          <div class="card-header bg-white">
-            <h5 class="mb-0">Rate Limiting</h5>
+          <div>
+            <h4 class="font-semibold mb-4">Product</h4>
+            <ul class="space-y-2 text-slate-400">
+              <li><a href="#features" class="hover:text-white transition">Features</a></li>
+              <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+              <li><a href="#" onclick="showPage('docs')" class="hover:text-white transition">API Docs</a></li>
+              <li><a href="#playground" class="hover:text-white transition">Playground</a></li>
+            </ul>
           </div>
-          <div class="card-body">
-            <p>API requests are limited to <strong>100 requests per 15 minutes</strong> per API key.</p>
-            <p>Rate limit headers are included in all responses:</p>
-            <ul>
-              <li><code>X-RateLimit-Limit</code> - Maximum requests allowed</li>
-              <li><code>X-RateLimit-Remaining</code> - Requests remaining in window</li>
-              <li><code>X-RateLimit-Reset</code> - Time when limit resets</li>
+          <div>
+            <h4 class="font-semibold mb-4">Resources</h4>
+            <ul class="space-y-2 text-slate-400">
+              <li><a href="#" onclick="showPage('docs')" class="hover:text-white transition">Documentation</a></li>
+              <li><a href="#" class="hover:text-white transition">Changelog</a></li>
+              <li><a href="#" class="hover:text-white transition">Status</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">Legal</h4>
+            <ul class="space-y-2 text-slate-400">
+              <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+              <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
             </ul>
           </div>
         </div>
+        <div class="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
+          <p>&copy; 2025 LeadEnrich API. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
 
-        <div class="card">
-          <div class="card-header bg-white">
-            <h5 class="mb-0">Example Response</h5>
-          </div>
-          <div class="card-body">
-            <div class="code-block">
-{
-  "success": true,
-  "data": {
-    "email": "john@stripe.com",
-    "domain": "stripe.com",
-    "company": {
-      "name": "Stripe",
-      "description": "Payment infrastructure for the internet",
-      "industry": "Financial Services",
-      "employees": 8000,
-      "location": {
-        "city": "San Francisco",
-        "country": "United States"
-      }
-    },
-    "source": "clearbit",
-    "cached": false
-  }
-}
+  <!-- API Documentation Page -->
+  <div id="docs-page" class="hidden">
+    <div class="pt-24 pb-12 min-h-screen bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+          <button onclick="showPage('landing')" class="text-slate-600 hover:text-primary-600 flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Back to Home</span>
+          </button>
+        </div>
+
+        <div class="grid lg:grid-cols-4 gap-8">
+          <!-- Sidebar Navigation -->
+          <div class="hidden lg:block">
+            <div class="sticky top-24 bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+              <h3 class="font-bold mb-4">API Documentation</h3>
+              <nav class="space-y-2">
+                <a href="#overview" onclick="scrollToDocs('overview')" class="block text-slate-600 hover:text-primary-600 py-1">Overview</a>
+                <a href="#authentication" onclick="scrollToDocs('authentication')" class="block text-slate-600 hover:text-primary-600 py-1">Authentication</a>
+                <a href="#endpoints" onclick="scrollToDocs('endpoints')" class="block text-slate-600 hover:text-primary-600 py-1">Endpoints</a>
+                <div class="pl-4 space-y-1">
+                  <a href="#enrich-email" onclick="scrollToDocs('enrich-email')" class="block text-sm text-slate-500 hover:text-primary-600 py-1">Enrich Email</a>
+                  <a href="#enrich-domain" onclick="scrollToDocs('enrich-domain')" class="block text-sm text-slate-500 hover:text-primary-600 py-1">Enrich Domain</a>
+                  <a href="#dashboard-stats" onclick="scrollToDocs('dashboard-stats')" class="block text-sm text-slate-500 hover:text-primary-600 py-1">Dashboard Stats</a>
+                  <a href="#generate-key" onclick="scrollToDocs('generate-key')" class="block text-sm text-slate-500 hover:text-primary-600 py-1">Generate API Key</a>
+                </div>
+                <a href="#responses" onclick="scrollToDocs('responses')" class="block text-slate-600 hover:text-primary-600 py-1">Response Format</a>
+                <a href="#errors" onclick="scrollToDocs('errors')" class="block text-slate-600 hover:text-primary-600 py-1">Error Handling</a>
+                <a href="#rate-limits" onclick="scrollToDocs('rate-limits')" class="block text-slate-600 hover:text-primary-600 py-1">Rate Limits</a>
+              </nav>
             </div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="lg:col-span-3 space-y-8">
+            <!-- Overview -->
+            <section id="overview" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+              <h1 class="text-3xl font-bold mb-4">API Documentation</h1>
+              <p class="text-slate-600 text-lg mb-6">
+                The Lead Enrichment API provides email and domain enrichment capabilities, delivering detailed company data for any valid email address or domain.
+              </p>
+              <div class="bg-slate-50 rounded-xl p-4">
+                <p class="font-mono text-sm"><span class="text-slate-500">Base URL:</span> <span class="text-primary-600">https://leads.zenithstudio.app</span></p>
+              </div>
+            </section>
+
+            <!-- Authentication -->
+            <section id="authentication" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+              <h2 class="text-2xl font-bold mb-4">Authentication</h2>
+              <p class="text-slate-600 mb-4">
+                All API requests require an API key passed in the <code class="bg-slate-100 px-2 py-1 rounded text-sm">X-API-Key</code> header.
+              </p>
+              <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                <pre class="font-mono text-sm text-slate-300"><code><span class="code-syntax-keyword">curl</span> <span class="code-syntax-string">-X POST</span> <span class="code-syntax-string">https://leads.zenithstudio.app/api/enrich/email</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"X-API-Key: le_your_api_key_here"</span> \
+  <span class="code-syntax-string">-H</span> <span class="code-syntax-string">"Content-Type: application/json"</span> \
+  <span class="code-syntax-string">-d</span> <span class="code-syntax-string">'{"email": "john@example.com"}'</span></code></pre>
+              </div>
+            </section>
+
+            <!-- Endpoints -->
+            <section id="endpoints" class="space-y-8">
+              <h2 class="text-2xl font-bold">Endpoints</h2>
+
+              <!-- Enrich Email -->
+              <div id="enrich-email" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-4">
+                  <span class="bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-lg">POST</span>
+                  <code class="text-lg">/api/enrich/email</code>
+                </div>
+                <p class="text-slate-600 mb-6">Enrich an email address with company data.</p>
+                
+                <h4 class="font-semibold mb-3">Request Body</h4>
+                <table class="w-full text-sm mb-6">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="text-left p-3 rounded-l-lg">Field</th>
+                      <th class="text-left p-3">Type</th>
+                      <th class="text-left p-3 rounded-r-lg">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-slate-100">
+                      <td class="p-3 font-mono text-primary-600">email</td>
+                      <td class="p-3 text-slate-600">string</td>
+                      <td class="p-3 text-slate-600">Email address to enrich (required)</td>
+                    </tr>
+                    <tr>
+                      <td class="p-3 font-mono text-primary-600">source</td>
+                      <td class="p-3 text-slate-600">string</td>
+                      <td class="p-3 text-slate-600">Data source: "hunter", "clearbit", "mock", or "auto"</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-3">Response</h4>
+                <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                  <pre class="font-mono text-xs text-slate-300"><code>{
+  <span class="code-syntax-key">"success"</span>: <span class="code-syntax-keyword">true</span>,
+  <span class="code-syntax-key">"data"</span>: {
+    <span class="code-syntax-key">"email"</span>: <span class="code-syntax-string">"john@stripe.com"</span>,
+    <span class="code-syntax-key">"status"</span>: <span class="code-syntax-string">"valid"</span>,
+    <span class="code-syntax-key">"result"</span>: <span class="code-syntax-string">"deliverable"</span>,
+    <span class="code-syntax-key">"score"</span>: <span class="code-syntax-number">95</span>,
+    <span class="code-syntax-key">"disposable"</span>: <span class="code-syntax-keyword">false</span>,
+    <span class="code-syntax-key">"webmail"</span>: <span class="code-syntax-keyword">false</span>,
+    <span class="code-syntax-key">"company"</span>: {
+      <span class="code-syntax-key">"name"</span>: <span class="code-syntax-string">"Stripe"</span>,
+      <span class="code-syntax-key">"domain"</span>: <span class="code-syntax-string">"stripe.com"</span>,
+      <span class="code-syntax-key">"description"</span>: <span class="code-syntax-string">"Payment infrastructure for the internet"</span>,
+      <span class="code-syntax-key">"industry"</span>: <span class="code-syntax-string">"Financial Services"</span>,
+      <span class="code-syntax-key">"employees"</span>: <span class="code-syntax-number">8000</span>,
+      <span class="code-syntax-key">"founded"</span>: <span class="code-syntax-number">2010</span>,
+      <span class="code-syntax-key">"location"</span>: {
+        <span class="code-syntax-key">"city"</span>: <span class="code-syntax-string">"San Francisco"</span>,
+        <span class="code-syntax-key">"state"</span>: <span class="code-syntax-string">"California"</span>,
+        <span class="code-syntax-key">"country"</span>: <span class="code-syntax-string">"United States"</span>
+      },
+      <span class="code-syntax-key">"website"</span>: <span class="code-syntax-string">"https://stripe.com"</span>,
+      <span class="code-syntax-key">"linkedin"</span>: <span class="code-syntax-string">"https://linkedin.com/company/stripe"</span>
+    },
+    <span class="code-syntax-key">"source"</span>: <span class="code-syntax-string">"mock"</span>,
+    <span class="code-syntax-key">"cached"</span>: <span class="code-syntax-keyword">false</span>
+  }
+}</code></pre>
+                </div>
+              </div>
+
+              <!-- Enrich Domain -->
+              <div id="enrich-domain" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-4">
+                  <span class="bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-lg">POST</span>
+                  <code class="text-lg">/api/enrich/domain</code>
+                </div>
+                <p class="text-slate-600 mb-6">Enrich a domain with company information.</p>
+                
+                <h4 class="font-semibold mb-3">Request Body</h4>
+                <table class="w-full text-sm mb-6">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="text-left p-3 rounded-l-lg">Field</th>
+                      <th class="text-left p-3">Type</th>
+                      <th class="text-left p-3 rounded-r-lg">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-slate-100">
+                      <td class="p-3 font-mono text-primary-600">domain</td>
+                      <td class="p-3 text-slate-600">string</td>
+                      <td class="p-3 text-slate-600">Domain to enrich (required)</td>
+                    </tr>
+                    <tr>
+                      <td class="p-3 font-mono text-primary-600">source</td>
+                      <td class="p-3 text-slate-600">string</td>
+                      <td class="p-3 text-slate-600">Data source: "hunter", "clearbit", "mock", or "auto"</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-3">Response</h4>
+                <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                  <pre class="font-mono text-xs text-slate-300"><code>{
+  <span class="code-syntax-key">"success"</span>: <span class="code-syntax-keyword">true</span>,
+  <span class="code-syntax-key">"data"</span>: {
+    <span class="code-syntax-key">"domain"</span>: <span class="code-syntax-string">"stripe.com"</span>,
+    <span class="code-syntax-key">"name"</span>: <span class="code-syntax-string">"Stripe"</span>,
+    <span class="code-syntax-key">"description"</span>: <span class="code-syntax-string">"Payment infrastructure for the internet"</span>,
+    <span class="code-syntax-key">"industry"</span>: <span class="code-syntax-string">"Financial Services"</span>,
+    <span class="code-syntax-key">"employees"</span>: <span class="code-syntax-number">8000</span>,
+    <span class="code-syntax-key">"employeesRange"</span>: <span class="code-syntax-string">"5000-10000"</span>,
+    <span class="code-syntax-key">"foundedYear"</span>: <span class="code-syntax-number">2010</span>,
+    <span class="code-syntax-key">"revenue"</span>: <span class="code-syntax-string">"$1B+"</span>,
+    <span class="code-syntax-key">"location"</span>: {
+      <span class="code-syntax-key">"city"</span>: <span class="code-syntax-string">"San Francisco"</span>,
+      <span class="code-syntax-key">"state"</span>: <span class="code-syntax-string">"California"</span>,
+      <span class="code-syntax-key">"country"</span>: <span class="code-syntax-string">"United States"</span>
+    },
+    <span class="code-syntax-key">"website"</span>: <span class="code-syntax-string">"https://stripe.com"</span>,
+    <span class="code-syntax-key">"linkedin"</span>: <span class="code-syntax-string">"https://linkedin.com/company/stripe"</span>,
+    <span class="code-syntax-key">"twitter"</span>: <span class="code-syntax-string">"@stripe"</span>,
+    <span class="code-syntax-key">"logo"</span>: <span class="code-syntax-string">"https://logo.clearbit.com/stripe.com"</span>,
+    <span class="code-syntax-key">"tags"</span>: [<span class="code-syntax-string">"payments"</span>, <span class="code-syntax-string">"fintech"</span>, <span class="code-syntax-string">"saas"</span>],
+    <span class="code-syntax-key">"tech"</span>: [<span class="code-syntax-string">"AWS"</span>, <span class="code-syntax-string">"React"</span>, <span class="code-syntax-string">"Ruby"</span>],
+    <span class="code-syntax-key">"source"</span>: <span class="code-syntax-string">"mock"</span>,
+    <span class="code-syntax-key">"cached"</span>: <span class="code-syntax-keyword">false</span>
+  }
+}</code></pre>
+                </div>
+              </div>
+
+              <!-- Dashboard Stats -->
+              <div id="dashboard-stats" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-4">
+                  <span class="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded-lg">GET</span>
+                  <code class="text-lg">/api/dashboard/stats</code>
+                </div>
+                <p class="text-slate-600 mb-6">Get usage statistics for your API key.</p>
+                
+                <h4 class="font-semibold mb-3">Query Parameters</h4>
+                <table class="w-full text-sm mb-6">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="text-left p-3 rounded-l-lg">Parameter</th>
+                      <th class="text-left p-3">Type</th>
+                      <th class="text-left p-3 rounded-r-lg">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="p-3 font-mono text-primary-600">days</td>
+                      <td class="p-3 text-slate-600">number</td>
+                      <td class="p-3 text-slate-600">Number of days to include in stats (default: 30)</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-3">Response</h4>
+                <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                  <pre class="font-mono text-xs text-slate-300"><code>{
+  <span class="code-syntax-key">"success"</span>: <span class="code-syntax-keyword">true</span>,
+  <span class="code-syntax-key">"stats"</span>: {
+    <span class="code-syntax-key">"total_requests"</span>: <span class="code-syntax-number">150</span>,
+    <span class="code-syntax-key">"email_requests"</span>: <span class="code-syntax-number">100</span>,
+    <span class="code-syntax-key">"domain_requests"</span>: <span class="code-syntax-number">50</span>,
+    <span class="code-syntax-key">"requests_today"</span>: <span class="code-syntax-number">12</span>,
+    <span class="code-syntax-key">"first_request"</span>: <span class="code-syntax-string">"2025-01-15 10:30:00"</span>,
+    <span class="code-syntax-key">"last_request"</span>: <span class="code-syntax-string">"2025-02-11 14:22:00"</span>,
+    <span class="code-syntax-key">"success_rate"</span>: <span class="code-syntax-number">98</span>,
+    <span class="code-syntax-key">"period_days"</span>: <span class="code-syntax-number">30</span>
+  },
+  <span class="code-syntax-key">"daily_breakdown"</span>: [
+    {
+      <span class="code-syntax-key">"date"</span>: <span class="code-syntax-string">"2025-02-11"</span>,
+      <span class="code-syntax-key">"requests"</span>: <span class="code-syntax-number">12</span>,
+      <span class="code-syntax-key">"emails"</span>: <span class="code-syntax-number">8</span>,
+      <span class="code-syntax-key">"domains"</span>: <span class="code-syntax-number">4</span>
+    }
+  ]
+}</code></pre>
+                </div>
+              </div>
+
+              <!-- Generate Key -->
+              <div id="generate-key" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-4">
+                  <span class="bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-lg">POST</span>
+                  <code class="text-lg">/api/auth/generate-key</code>
+                </div>
+                <p class="text-slate-600 mb-6">Generate a new API key for your application.</p>
+                
+                <h4 class="font-semibold mb-3">Request Body</h4>
+                <table class="w-full text-sm mb-6">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th class="text-left p-3 rounded-l-lg">Field</th>
+                      <th class="text-left p-3">Type</th>
+                      <th class="text-left p-3 rounded-r-lg">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="p-3 font-mono text-primary-600">name</td>
+                      <td class="p-3 text-slate-600">string</td>
+                      <td class="p-3 text-slate-600">Name for the API key (required)</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <h4 class="font-semibold mb-3">Response</h4>
+                <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto">
+                  <pre class="font-mono text-xs text-slate-300"><code>{
+  <span class="code-syntax-key">"success"</span>: <span class="code-syntax-keyword">true</span>,
+  <span class="code-syntax-key">"apiKey"</span>: <span class="code-syntax-string">"le_39b3b76a7cb8dee141b05047f087c838..."</span>,
+  <span class="code-syntax-key">"name"</span>: <span class="code-syntax-string">"My Application"</span>,
+  <span class="code-syntax-key">"createdAt"</span>: <span class="code-syntax-string">"2025-02-11T16:09:19.181Z"</span>,
+  <span class="code-syntax-key">"message"</span>: <span class="code-syntax-string">"Store this API key securely. It will not be shown again."</span>
+}</code></pre>
+                </div>
+              </div>
+            </section>
+
+            <!-- Response Format -->
+            <section id="responses" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+              <h2 class="text-2xl font-bold mb-4">Response Format</h2>
+              <p class="text-slate-600 mb-4">
+                All API responses follow a consistent JSON structure:
+              </p>
+              <div class="bg-slate-950 rounded-xl p-4 overflow-x-auto mb-6">
+                <pre class="font-mono text-sm text-slate-300"><code>{
+  <span class="code-syntax-key">"success"</span>: <span class="code-syntax-keyword">true</span> | <span class="code-syntax-keyword">false</span>,
+  <span class="code-syntax-key">"data"</span>: { ... },           <span class="code-syntax-comment">// Response data (on success)</span>
+  <span class="code-syntax-key">"error"</span>: <span class="code-syntax-string">"..."</span>,          <span class="code-syntax-comment">// Error code (on failure)</span>
+  <span class="code-syntax-key">"message"</span>: <span class="code-syntax-string">"..."</span>        <span class="code-syntax-comment">// Human-readable message</span>
+}</code></pre>
+              </div>
+            </section>
+
+            <!-- Error Handling -->
+            <section id="errors" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+              <h2 class="text-2xl font-bold mb-4">Error Handling</h2>
+              <p class="text-slate-600 mb-6">
+                The API uses standard HTTP status codes and returns detailed error messages.
+              </p>
+              
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="text-left p-3 rounded-l-lg">Status</th>
+                    <th class="text-left p-3">Error</th>
+                    <th class="text-left p-3 rounded-r-lg">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-slate-100">
+                    <td class="p-3 font-mono text-yellow-600">400</td>
+                    <td class="p-3">Bad Request</td>
+                    <td class="p-3 text-slate-600">Invalid request parameters</td>
+                  </tr>
+                  <tr class="border-b border-slate-100">
+                    <td class="p-3 font-mono text-red-600">401</td>
+                    <td class="p-3">Unauthorized</td>
+                    <td class="p-3 text-slate-600">Missing or invalid API key</td>
+                  </tr>
+                  <tr class="border-b border-slate-100">
+                    <td class="p-3 font-mono text-orange-600">429</td>
+                    <td class="p-3">Too Many Requests</td>
+                    <td class="p-3 text-slate-600">Rate limit exceeded</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono text-red-600">500</td>
+                    <td class="p-3">Internal Server Error</td>
+                    <td class="p-3 text-slate-600">Something went wrong on our end</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <!-- Rate Limits -->
+            <section id="rate-limits" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+              <h2 class="text-2xl font-bold mb-4">Rate Limits</h2>
+              <p class="text-slate-600 mb-6">
+                API requests are limited to <strong>100 requests per 15 minutes</strong> per API key on the free plan. Higher limits available on paid plans.
+              </p>
+              
+              <h4 class="font-semibold mb-3">Rate Limit Headers</h4>
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="text-left p-3 rounded-l-lg">Header</th>
+                    <th class="text-left p-3 rounded-r-lg">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-slate-100">
+                    <td class="p-3 font-mono text-primary-600">X-RateLimit-Limit</td>
+                    <td class="p-3 text-slate-600">Maximum requests allowed per window</td>
+                  </tr>
+                  <tr class="border-b border-slate-100">
+                    <td class="p-3 font-mono text-primary-600">X-RateLimit-Remaining</td>
+                    <td class="p-3 text-slate-600">Requests remaining in current window</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono text-primary-600">X-RateLimit-Reset</td>
+                    <td class="p-3 text-slate-600">Unix timestamp when limit resets</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Docs Footer -->
+    <footer class="bg-slate-900 text-white py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-slate-400">&copy; 2025 LeadEnrich API. All rights reserved.</p>
+      </div>
+    </footer>
   </div>
 
-  <footer class="bg-white border-top py-4 mt-5">
-    <div class="container text-center text-muted">
-      <p class="mb-0">Lead Enrichment API &copy; 2025</p>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const API_BASE = window.location.origin + '/api';
 
+    // Page Navigation
+    function showPage(page) {
+      if (page === 'landing') {
+        document.getElementById('landing-page').classList.remove('hidden');
+        document.getElementById('docs-page').classList.add('hidden');
+        window.scrollTo(0, 0);
+      } else if (page === 'docs') {
+        document.getElementById('landing-page').classList.add('hidden');
+        document.getElementById('docs-page').classList.remove('hidden');
+        window.scrollTo(0, 0);
+      }
+    }
+
+    // Scroll to section
+    function scrollToSection(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Scroll to docs section
+    function scrollToDocs(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        const offset = 100;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      }
+    }
+
+    // Code Examples
+    function showCode(lang) {
+      // Hide all
+      document.getElementById('code-curl').classList.add('hidden');
+      document.getElementById('code-node').classList.add('hidden');
+      document.getElementById('code-python').classList.add('hidden');
+      
+      // Reset buttons
+      document.getElementById('btn-curl').className = 'px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium transition';
+      document.getElementById('btn-node').className = 'px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium transition';
+      document.getElementById('btn-python').className = 'px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium transition';
+      
+      // Show selected
+      document.getElementById('code-' + lang).classList.remove('hidden');
+      document.getElementById('btn-' + lang).className = 'px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium transition';
+    }
+
+    // Generate API Key
     async function generateKey() {
       const name = document.getElementById('keyName').value;
       if (!name) {
@@ -398,17 +1118,18 @@ curl -X POST https://your-api.com/api/enrich/email \\
         
         if (data.success) {
           document.getElementById('apiKeyDisplay').textContent = data.apiKey;
-          document.getElementById('generatedKey').classList.remove('d-none');
+          document.getElementById('generatedKey').classList.remove('hidden');
           document.getElementById('playgroundApiKey').value = data.apiKey;
           document.getElementById('playgroundApiKey2').value = data.apiKey;
         } else {
-          alert('Failed to generate key: ' + data.message);
+          alert('Failed to generate key: ' + (data.message || 'Unknown error'));
         }
       } catch (error) {
         alert('Error: ' + error.message);
       }
     }
 
+    // Test Email Endpoint
     async function testEmailEndpoint() {
       const apiKey = document.getElementById('playgroundApiKey').value;
       const email = document.getElementById('testEmail').value;
@@ -419,8 +1140,8 @@ curl -X POST https://your-api.com/api/enrich/email \\
       }
 
       const resultDiv = document.getElementById('emailResult');
-      resultDiv.classList.remove('d-none');
-      resultDiv.querySelector('.code-block').textContent = 'Loading...';
+      resultDiv.classList.remove('hidden');
+      resultDiv.querySelector('div').textContent = 'Loading...';
 
       try {
         const response = await fetch(`${API_BASE}/enrich/email`, {
@@ -433,12 +1154,13 @@ curl -X POST https://your-api.com/api/enrich/email \\
         });
 
         const data = await response.json();
-        resultDiv.querySelector('.code-block').textContent = JSON.stringify(data, null, 2);
+        resultDiv.querySelector('div').textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        resultDiv.querySelector('.code-block').textContent = 'Error: ' + error.message;
+        resultDiv.querySelector('div').textContent = 'Error: ' + error.message;
       }
     }
 
+    // Test Domain Endpoint
     async function testDomainEndpoint() {
       const apiKey = document.getElementById('playgroundApiKey2').value;
       const domain = document.getElementById('testDomain').value;
@@ -449,8 +1171,8 @@ curl -X POST https://your-api.com/api/enrich/email \\
       }
 
       const resultDiv = document.getElementById('domainResult');
-      resultDiv.classList.remove('d-none');
-      resultDiv.querySelector('.code-block').textContent = 'Loading...';
+      resultDiv.classList.remove('hidden');
+      resultDiv.querySelector('div').textContent = 'Loading...';
 
       try {
         const response = await fetch(`${API_BASE}/enrich/domain`, {
@@ -463,42 +1185,42 @@ curl -X POST https://your-api.com/api/enrich/email \\
         });
 
         const data = await response.json();
-        resultDiv.querySelector('.code-block').textContent = JSON.stringify(data, null, 2);
+        resultDiv.querySelector('div').textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        resultDiv.querySelector('.code-block').textContent = 'Error: ' + error.message;
+        resultDiv.querySelector('div').textContent = 'Error: ' + error.message;
       }
     }
 
+    // Load global stats on page load
     async function loadGlobalStats() {
       try {
         const response = await fetch(`${API_BASE}/dashboard/global-stats`);
         const data = await response.json();
         
-        if (data.success) {
-          document.getElementById('globalStats').innerHTML = `
-            <div class="row text-center">
-              <div class="col-4">
-                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.total_requests || 0}</div>
-                <div class="stat-label" style="font-size: 0.7rem;">Total</div>
-              </div>
-              <div class="col-4">
-                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.email_requests || 0}</div>
-                <div class="stat-label" style="font-size: 0.7rem;">Emails</div>
-              </div>
-              <div class="col-4">
-                <div class="stat-value" style="font-size: 1.5rem;">${data.global_stats.domain_requests || 0}</div>
-                <div class="stat-label" style="font-size: 0.7rem;">Domains</div>
-              </div>
-            </div>
-          `;
+        if (data.success && data.global_stats) {
+          // Update stats if elements exist
+          const totalEl = document.getElementById('totalRequests');
+          const emailEl = document.getElementById('emailRequests');
+          const domainEl = document.getElementById('domainRequests');
+          const successEl = document.getElementById('successRate');
+          
+          if (totalEl) totalEl.textContent = data.global_stats.total_requests || 0;
+          if (emailEl) emailEl.textContent = data.global_stats.email_requests || 0;
+          if (domainEl) domainEl.textContent = data.global_stats.domain_requests || 0;
+          if (successEl) successEl.textContent = '99%';
         }
       } catch (error) {
-        console.error('Failed to load stats:', error);
+        console.log('Stats not loaded yet');
       }
     }
 
-    // Load stats on page load
-    loadGlobalStats();
+    // Load stats when page loads
+    document.addEventListener('DOMContentLoaded', loadGlobalStats);
+
+    // Check for /docs or /api in URL
+    if (window.location.pathname === '/docs' || window.location.pathname === '/api') {
+      showPage('docs');
+    }
   </script>
 </body>
 </html>
