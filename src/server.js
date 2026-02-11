@@ -19,9 +19,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://cdn.tailwindcss.com", "'unsafe-inline'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
     },
   },
 }));
@@ -46,6 +48,15 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Serve dashboard at root
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Serve documentation pages
+app.get('/docs', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get('/api', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
@@ -97,8 +108,9 @@ async function startServer() {
     
     app.listen(PORT, () => {
       console.log(`🚀 Lead Enrichment API running on port ${PORT}`);
-      console.log(`📊 Dashboard: http://localhost:${PORT}`);
-      console.log(`📚 API Docs: http://localhost:${PORT}/api/docs`);
+      console.log(`🏠 Landing Page: http://localhost:${PORT}`);
+      console.log(`📚 API Docs: http://localhost:${PORT}/docs`);
+      console.log(`📊 JSON API Docs: http://localhost:${PORT}/api/docs`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
