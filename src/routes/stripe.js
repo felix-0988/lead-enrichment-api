@@ -119,6 +119,7 @@ const webhookHandler = async (req, res) => {
   res.json({ received: true });
 };
 
+// Export router with handlers attached
+router.webhookHandler = webhookHandler;
+router.createCheckoutHandler = createCheckoutHandler;
 module.exports = router;
-module.exports.webhookHandler = webhookHandler;
-module.exports.createCheckoutHandler = createCheckoutHandler;
