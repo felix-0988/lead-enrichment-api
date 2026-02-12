@@ -9,10 +9,14 @@ const db = require('./db');
 const enrichRoutes = require('./routes/enrich');
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
+const stripeRoutes = require('./routes/stripe');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Stripe webhook route - must be before express.json()
+app.use('/webhook', stripeRoutes);
 
 // Security middleware
 app.use(helmet({
@@ -45,6 +49,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/enrich', enrichRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/create-checkout-session', stripeRoutes);
 
 // Serve dashboard at root
 app.get('/', (req, res) => {
