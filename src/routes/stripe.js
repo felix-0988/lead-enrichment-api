@@ -1,16 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Initialize stripe only if key is provided
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? require('stripe')(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 // Webhook secret for Leads product
-const WEBHOOK_SECRET = 'whsec_IldFyJgblCW7N2o8LS4fNmz6euTZIIP8';
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_IldFyJgblCW7N2o8LS4fNmz6euTZIIP8';
 
 // Price IDs - should be set in environment variables
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_leads_monthly'; // $4/month
 
-// Create checkout session
-router.post('/create-checkout-session', async (req, res) => {
+// Create checkout session - mounted at /create-checkout-session so use /
+const createCheckoutHandler = async (req, res) => {
   try {
+    if (!stripe) {
+      return res.status(503).json({ success: false, error: 'Stripe not configured' });
+    }
+    
     const { customerEmail, successUrl, cancelUrl } = req.body;
 
     const session = await stripe.checkout.sessions.create({
@@ -42,10 +50,16 @@ router.post('/create-checkout-session', async (req, res) => {
     console.error('Error creating checkout session:', error);
     res.status(500).json({ success: false, error: error.message });
   }
-});
+};
 
-// Stripe webhook handler
-router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+router.post('/create-checkout-session', createCheckoutHandler);
+
+// Stripe webhook handler - exported separately for raw body parsing
+const webhookHandler = async (req, res) => {
+  if (!stripe) {
+    return res.status(503).send('Stripe not configured');
+  }
+  
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -103,6 +117,8 @@ router.post('/stripe', express.raw({ type: 'application/json' }), async (req, re
   }
 
   res.json({ received: true });
-});
+};
 
 module.exports = router;
+module.exports.webhookHandler = webhookHandler;
+module.exports.createCheckoutHandler = createCheckoutHandler;

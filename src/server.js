@@ -16,7 +16,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Stripe webhook route - must be before express.json()
-app.use('/webhook', stripeRoutes);
+// Only mount the webhook endpoint with raw body parsing
+app.post('/webhook/stripe', express.raw({ type: 'application/json' }), require('./routes/stripe').webhookHandler);
 
 // Security middleware
 app.use(helmet({
@@ -49,7 +50,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/enrich', enrichRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/create-checkout-session', stripeRoutes);
+app.post('/create-checkout-session', require('./routes/stripe').createCheckoutHandler);
 
 // Serve dashboard at root
 app.get('/', (req, res) => {
